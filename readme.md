@@ -43,3 +43,63 @@ pytorch 1.6
     booktitle = {ICCV},  
     year      = {2021},  
 }
+
+---
+
+## 🚀 Running on Kaggle (CIC-IoT23 Centralized Split)
+
+Follow these steps to run the training, validation, and resume modes on Kaggle with the dataset **`tongxuanvu/dataset-fl`**.
+
+### 1. Setup Notebook
+Create a new Python notebook on Kaggle. In the notebook settings (right sidebar):
+* Enable **GPU T4 x2** or **GPU P100** under Accelerator.
+* Add the dataset: `tongxuanvu/dataset-fl`.
+
+### 2. Clone Repository
+Run the following shell commands in a notebook cell:
+```bash
+!git clone https://github.com/TongXuanVu/LCwoF.git
+%cd LCwoF/mini_imgnet
+```
+
+### 3. Run Commands
+
+#### **A. Train Mode (Full 330 Rounds)**
+```bash
+!python run_ciciot23.py \
+    --mode train \
+    --data_root /kaggle/input/datasets/tongxuanvu/dataset-fl \
+    --run_dir /kaggle/working/logs/lcwof_ciciot23
+```
+
+#### **B. Debug Mode (Fast test, 2 epochs per phase, 200 samples/class test set)**
+```bash
+!python run_ciciot23.py \
+    --mode train \
+    --debug \
+    --data_root /kaggle/input/datasets/tongxuanvu/dataset-fl \
+    --run_dir /kaggle/working/logs/lcwof_ciciot23
+```
+
+#### **C. Test Mode (Evaluate all checkpoints)**
+```bash
+!python run_ciciot23.py \
+    --mode test \
+    --data_root /kaggle/input/datasets/tongxuanvu/dataset-fl \
+    --test_dir /kaggle/working/logs/lcwof_ciciot23/seed42_<timestamp>/
+```
+
+#### **D. Resume Mode (Resume from a specific checkpoint)**
+```bash
+!python run_ciciot23.py \
+    --mode resume \
+    --data_root /kaggle/input/datasets/tongxuanvu/dataset-fl \
+    --resume_path /kaggle/working/logs/lcwof_ciciot23/seed42_<timestamp>/checkpoints/task_3_phase2_epoch_10.pt
+```
+
+### 📈 Metrics and Plots Output
+All metrics are stored in `/kaggle/working/logs/lcwof_ciciot23/seed42_<timestamp>/round_metrics.csv` and confusion matrix heatmaps under `/kaggle/working/logs/lcwof_ciciot23/seed42_<timestamp>/confusion_matrices/cm_round_{round_idx}.png`.
+You can download them by running:
+```bash
+!zip -r lcwof_results.zip /kaggle/working/logs/lcwof_ciciot23
+```
