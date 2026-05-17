@@ -223,6 +223,8 @@ def main():
                         help="Path to a model checkpoint (.pt) to resume from or to test")
     parser.add_argument("--test_dir", type=str, default="",
                         help="Path to directory containing multiple checkpoints to evaluate in test mode")
+    parser.add_argument("--run_dir", type=str, default="",
+                        help="Custom directory to save logs, CSV, and checkpoints")
     
     args = parser.parse_args()
     
@@ -398,8 +400,11 @@ def main():
         round_csv_writer = csv.writer(round_csv_file)
         
     else: # train mode
-        timestamp = datetime.now().strftime("%d-%m-%y_%H-%M")
-        run_dir = os.path.join(str(dir_path), "logs", "lcwof_ciciot23", f"seed{args.seed}_{timestamp}")
+        if args.run_dir:
+            run_dir = args.run_dir
+        else:
+            timestamp = datetime.now().strftime("%d-%m-%y_%H-%M")
+            run_dir = os.path.join(str(dir_path), "logs", "lcwof_ciciot23", f"seed{args.seed}_{timestamp}")
         os.makedirs(run_dir, exist_ok=True)
         print(f"[Logs] Output directory: {run_dir}")
         
