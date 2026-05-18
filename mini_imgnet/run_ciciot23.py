@@ -569,8 +569,15 @@ def main():
                     c_mask = (train_y == c)
                     x_c = train_x[c_mask]
                     if len(x_c) > 0:
-                        features = model.encoder(x_c.to(device))
-                        mean_feature = features.mean(dim=0)
+                        # Process in batches to prevent CUDA Out Of Memory (OOM)
+                        sum_features = torch.zeros(model.encoder.out_dim, device=device)
+                        total_c = len(x_c)
+                        eval_batch_size = 8192
+                        for i in range(0, total_c, eval_batch_size):
+                            batch_x = x_c[i:i + eval_batch_size].to(device)
+                            features = model.encoder(batch_x)
+                            sum_features += features.sum(dim=0)
+                        mean_feature = sum_features / total_c
                         mean_feature = F.normalize(mean_feature, p=2, dim=0)
                         model.fc.weight.data[c] = mean_feature
                         
