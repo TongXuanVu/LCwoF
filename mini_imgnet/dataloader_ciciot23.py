@@ -40,7 +40,7 @@ class CICIoT23DataManager:
     def __init__(self, data_root="C:/FederatedLearning/FL/core/data_split", use_fewshot=False):
         self.data_root = data_root
         if use_fewshot:
-            self.centralized_dir = os.path.join(data_root, "centralized_data_fewshot")
+            self.centralized_dir = os.path.join(data_root, "fewshot", "centralized_data_fewshot")
         else:
             self.centralized_dir = os.path.join(data_root, "centralized_data")
         self.global_test_file = os.path.join(data_root, "global_test_data.pt")
