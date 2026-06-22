@@ -44,12 +44,14 @@ class CICIoT23DataManager:
         else:
             self.centralized_dir = os.path.join(data_root, "centralized_data")
         self.global_test_file = os.path.join(data_root, "global_test_data.pt")
+        if not os.path.exists(self.global_test_file):
+            self.global_test_file = os.path.join(data_root, "data", "global_test_data.pt")
         
         # Verify paths
         if not os.path.exists(self.centralized_dir):
             raise FileNotFoundError(f"Centralized data directory not found: {self.centralized_dir}")
         if not os.path.exists(self.global_test_file):
-            raise FileNotFoundError(f"Global test file not found: {self.global_test_file}")
+            raise FileNotFoundError(f"Global test file not found: {self.global_test_file} or {os.path.join(data_root, 'global_test_data.pt')}")
 
         # Load global test data
         print("[DataManager] Loading global test data...")
