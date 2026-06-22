@@ -226,6 +226,9 @@ def main():
     parser.add_argument("--run_dir", type=str, default="",
                         help="Custom directory to save logs, CSV, and checkpoints")
     
+    parser.add_argument("--use_fewshot", action="store_true",
+                        help="Use the few-shot data split (centralized_data_fewshot) instead of the full centralized data")
+    
     args = parser.parse_args()
     
     if args.debug:
@@ -240,7 +243,7 @@ def main():
     print(f"[Device] Using device: {device}")
     
     # 1. Setup Data Manager
-    dm = CICIoT23DataManager(data_root=args.data_root)
+    dm = CICIoT23DataManager(data_root=args.data_root, use_fewshot=args.use_fewshot)
     
     # Define tasks and their corresponding classes
     tasks_classes = [
