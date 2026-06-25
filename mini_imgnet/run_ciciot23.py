@@ -226,8 +226,8 @@ def main():
     parser.add_argument("--run_dir", type=str, default="",
                         help="Custom directory to save logs, CSV, and checkpoints")
     
-    parser.add_argument("--use_fewshot", action="store_true",
-                        help="Use the few-shot data split (centralized_data_fewshot) instead of the full centralized data")
+    parser.add_argument("--data_folder", type=str, default="centralized_data",
+                        help="Name of the subfolder inside data_root containing the centralized data files (e.g. centralized_data, centralized_data_10shot)")
     
     args = parser.parse_args()
     
@@ -243,7 +243,7 @@ def main():
     print(f"[Device] Using device: {device}")
     
     # 1. Setup Data Manager
-    dm = CICIoT23DataManager(data_root=args.data_root, use_fewshot=args.use_fewshot)
+    dm = CICIoT23DataManager(data_root=args.data_root, data_folder=args.data_folder)
     
     # Define tasks and their corresponding classes
     tasks_classes = [
