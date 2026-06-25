@@ -228,8 +228,10 @@ def main():
     
     parser.add_argument("--use_fewshot", action="store_true",
                         help="Use the few-shot data split (centralized_data_fewshot) instead of the full centralized data")
+    parser.add_argument("--use_10shot", action="store_true",
+                        help="Use the 10-shot data split (10shot/centralized_data_10shot) instead of the full centralized data")
     parser.add_argument("--data_dir_name", type=str, default="",
-                        help="Custom directory name for centralized data (e.g., 'centralized_data_10shot'). Overrides --use_fewshot if provided.")
+                        help="Custom directory name for centralized data (e.g., 'centralized_data_10shot'). Overrides other flags if provided.")
     
     args = parser.parse_args()
     
@@ -245,7 +247,7 @@ def main():
     print(f"[Device] Using device: {device}")
     
     # 1. Setup Data Manager
-    dm = CICIoT23DataManager(data_root=args.data_root, use_fewshot=args.use_fewshot, data_dir_name=args.data_dir_name)
+    dm = CICIoT23DataManager(data_root=args.data_root, use_fewshot=args.use_fewshot, use_10shot=args.use_10shot, data_dir_name=args.data_dir_name)
     
     # Define tasks and their corresponding classes
     tasks_classes = [

@@ -37,10 +37,12 @@ class CICIoT23DataManager:
     """
     Manages loading of centralized CIC-IoT23 tasks and global test data.
     """
-    def __init__(self, data_root="C:/FederatedLearning/FL/core/data_split", use_fewshot=False, data_dir_name=None):
+    def __init__(self, data_root="C:/FederatedLearning/FL/core/data_split", use_fewshot=False, use_10shot=False, data_dir_name=None):
         self.data_root = data_root
         if data_dir_name:
             self.centralized_dir = os.path.join(data_root, data_dir_name)
+        elif use_10shot:
+            self.centralized_dir = os.path.join(data_root, "10shot", "centralized_data_10shot")
         elif use_fewshot:
             self.centralized_dir = os.path.join(data_root, "fewshot", "centralized_data_fewshot")
         else:
