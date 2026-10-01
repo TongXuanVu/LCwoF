@@ -52,6 +52,28 @@ def gop_task(files, task_id):
     return {"x": x, "y": y}
 
 
+def lien_ket_task_base(out_root, dst_dir):
+    """Tro task base (task 1) sang ban FULL bang SYMLINK thay vi copy vat ly.
+
+    File centralized_task_1.pt that su co the toi hang chuc GB tren du lieu that
+    (vd 97.6 trieu mau tren bo 100clientiov). shutil.copy() ban nay 3 lan
+    (centralized_data/, fewshot/, 10shot/) se gay OSError het dung luong tren
+    /kaggle/working (quota gioi han). Symlink khong ton dung luong vi ca 3 kich
+    ban chi tro chung ve 1 file vat ly duy nhat.
+    """
+    src = os.path.abspath(os.path.join(out_root, "centralized_data", f"centralized_task_{TASK_BASE}.pt"))
+    dst = os.path.join(dst_dir, f"centralized_task_{TASK_BASE}.pt")
+    if os.path.lexists(dst):
+        os.remove(dst)
+    try:
+        os.symlink(src, dst)
+        print(f"  task {TASK_BASE}: dung chung ban full (symlink, khong copy)")
+    except OSError as e:
+        # He thong file khong ho tro symlink (hiem gap tren Linux/Kaggle) -> fallback copy
+        print(f"  [CANH BAO] symlink that bai ({e}), fallback sang copy vat ly")
+        shutil.copy(src, dst)
+
+
 def xu_ly_kich_ban(src_dir, dst_dir, tasks, dry_run=False):
     """Gop 1 kich ban (full/fewshot/10shot) cho danh sach task da cho."""
     if not dry_run:
@@ -109,10 +131,7 @@ def main():
     dst_fewshot = os.path.join(out_root, "fewshot", "centralized_data_fewshot")
     if not args.dry_run:
         os.makedirs(dst_fewshot, exist_ok=True)
-        shutil.copy(
-            os.path.join(out_root, "centralized_data", f"centralized_task_{TASK_BASE}.pt"),
-            os.path.join(dst_fewshot, f"centralized_task_{TASK_BASE}.pt"))
-        print(f"  task {TASK_BASE}: dung chung ban full (copy)")
+        lien_ket_task_base(out_root, dst_fewshot)
     xu_ly_kich_ban(os.path.join(fed_root, "federated_data_fewshot"),
                     dst_fewshot, fs_tasks, args.dry_run)
 
@@ -120,10 +139,7 @@ def main():
     dst_10shot = os.path.join(out_root, "10shot", "centralized_data_10shot")
     if not args.dry_run:
         os.makedirs(dst_10shot, exist_ok=True)
-        shutil.copy(
-            os.path.join(out_root, "centralized_data", f"centralized_task_{TASK_BASE}.pt"),
-            os.path.join(dst_10shot, f"centralized_task_{TASK_BASE}.pt"))
-        print(f"  task {TASK_BASE}: dung chung ban full (copy)")
+        lien_ket_task_base(out_root, dst_10shot)
     xu_ly_kich_ban(os.path.join(fed_root, "federated_data_10shot"),
                     dst_10shot, fs_tasks, args.dry_run)
 
