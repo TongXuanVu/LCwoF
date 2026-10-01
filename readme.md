@@ -103,3 +103,64 @@ You can download them by running:
 ```bash
 !zip -r lcwof_results.zip /kaggle/working/logs/lcwof_ciciot23
 ```
+
+---
+
+## 🚀 Running on Kaggle (CAN-IoV 100-client Centralized Split)
+
+Bản CAN-IoV dùng dataset gốc là FEDERATED (`tongxuanvu/100clientiov`, moi client mot
+shard rieng theo task), nen phai GOP lai thanh tap trung bang
+`build_centralized_caniov.py` NGAY TRONG notebook truoc khi train — khong co san
+`centralized_data/` nhu ban CIC-IoT23.
+
+5 task, 13 lop, tang dan **3,3,3,2,2** (khac CIC-IoT23 la 6 task/34 lop/6,6,6,6,5,5).
+Task 1 luon dung FULL data, ca 3 kich ban (full/1%/10-shot) deu dung chung.
+
+### 1. Setup Notebook
+* Enable **GPU T4 x2** hoac **GPU P100**.
+* Add dataset: `tongxuanvu/100clientiov`.
+
+### 2. Clone Repository
+```bash
+!git clone https://github.com/TongXuanVu/LCwoF.git
+%cd LCwoF/mini_imgnet
+```
+
+### 3. Gop du lieu federated -> centralized (bat buoc, chay 1 lan moi phien)
+```bash
+!python build_centralized_caniov.py \
+    --fed_root /kaggle/input/datasets/tongxuanvu/100clientiov \
+    --out_root /kaggle/working/centralized_caniov
+```
+
+### 4. Chay train (full / fewshot 1% / 10-shot)
+```bash
+# full
+!python run_caniov.py --mode train \
+    --data_root /kaggle/working/centralized_caniov \
+    --run_dir /kaggle/working/logs/lcwof_caniov
+
+# fewshot 1%
+!python run_caniov.py --mode train --use_fewshot \
+    --data_root /kaggle/working/centralized_caniov \
+    --run_dir /kaggle/working/logs/lcwof_caniov_fewshot
+
+# 10-shot
+!python run_caniov.py --mode train --use_10shot \
+    --data_root /kaggle/working/centralized_caniov \
+    --run_dir /kaggle/working/logs/lcwof_caniov_10shot
+```
+Them `--debug` de chay thu nhanh (2 epoch/phase) truoc khi chay that.
+
+### 5. Resume / Test mode
+Giong het ban CIC-IoT23, chi doi `run_caniov.py` va `--data_root
+/kaggle/working/centralized_caniov`:
+```bash
+!python run_caniov.py --mode resume \
+    --data_root /kaggle/working/centralized_caniov \
+    --resume_path /kaggle/working/logs/lcwof_caniov/checkpoints/task_3_phase2_epoch_10.pt
+
+!python run_caniov.py --mode test \
+    --data_root /kaggle/working/centralized_caniov \
+    --test_dir /kaggle/working/logs/lcwof_caniov
+```
