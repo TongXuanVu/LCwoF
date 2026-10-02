@@ -395,10 +395,22 @@ def main():
         csv_path = os.path.join(run_dir, "metrics.csv")
         csv_file = open(csv_path, "a", newline="", encoding="utf-8")
         csv_writer = csv.writer(csv_file)
+        if os.path.getsize(csv_path) == 0:
+            csv_writer.writerow([
+                "task", "acc", "prec_mic", "prec_mac", "prec_wei",
+                "rec_mic", "rec_mac", "rec_wei", "f1_mic", "f1_mac", "f1_wei"
+            ])
 
         round_csv_path = os.path.join(run_dir, "round_metrics.csv")
         round_csv_file = open(round_csv_path, "a", newline="", encoding="utf-8")
         round_csv_writer = csv.writer(round_csv_file)
+        if os.path.getsize(round_csv_path) == 0:
+            round_csv_writer.writerow([
+                "round_idx", "task", "phase", "epoch", "train_loss", "test_loss",
+                "acc", "prec_mic", "prec_mac", "prec_wei",
+                "rec_mic", "rec_mac", "rec_wei",
+                "f1_mic", "f1_mac", "f1_wei", "fpr"
+            ])
 
     else:  # train mode
         if args.run_dir:
