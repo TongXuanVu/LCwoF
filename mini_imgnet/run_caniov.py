@@ -192,7 +192,7 @@ def load_checkpoint(model, checkpoint_path, device):
     fc_weight = state_dict['fc.weight']
     num_classes = fc_weight.shape[0]
 
-    model.fc = nn.Linear(model.encoder.out_dim, num_classes, bias=False)
+    model.fc = nn.Linear(model.encoder.out_dim, num_classes, bias=False).to(device)
     model.load_state_dict(state_dict)
 
     if 'checkpoint_init' in checkpoint:
