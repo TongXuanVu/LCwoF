@@ -113,21 +113,25 @@ class CanIoVDataManager:
     def select_exemplars(self, x, y, classes, m_per_class=20):
         print(f"[DataManager] Selecting {m_per_class} exemplars per class for {classes}...")
         for c in classes:
-            class_mask = (y == c)
-            x_c = x[class_mask]
-            y_c = y[class_mask]
+            # Chon theo CHI SO thay vi x[class_mask] (sao chep ca lop = hang chuc GB
+            # o task 1 cua IoV, ~97,7 trieu mau -> het RAM). Ket qua GIONG HET:
+            # mask boolean giu nguyen thu tu nen x[mask][i] == x[idx_c[i]], va
+            # np.random.choice nhan cung n_samples nen tieu thu RNG y het.
+            idx_c = torch.nonzero(y == c, as_tuple=True)[0]
 
-            n_samples = x_c.shape[0]
+            n_samples = idx_c.numel()
             if n_samples == 0:
                 print(f"[DataManager] Warning: No samples found for class {c}!")
                 continue
 
             n_select = max(1, int(n_samples * 0.01))
             indices = np.random.choice(n_samples, n_select, replace=False)
+            sel = idx_c[torch.from_numpy(indices)]
             self.exemplar_memory[c] = {
-                'x': x_c[indices],
-                'y': y_c[indices]
+                'x': x[sel],
+                'y': y[sel]
             }
+            del idx_c, sel
         print("[DataManager] Exemplar memory updated.")
 
     def get_calibration_dataset(self, seen_classes, current_task_x, current_task_y, current_task_classes, m_per_class=20):

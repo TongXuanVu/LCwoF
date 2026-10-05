@@ -227,6 +227,10 @@ def main():
                         help="Path to directory containing multiple checkpoints to evaluate in test mode")
     parser.add_argument("--run_dir", type=str, default="",
                         help="Custom directory to save logs, CSV, and checkpoints")
+    parser.add_argument("--slim_epoch_ckpt", action="store_true",
+                        help="Khong luu exemplar_memory vao checkpoint tung epoch (no khong doi trong luc "
+                             "mot task chay va nang ~130MB/file o IoV). Resume giua task se doc exemplar "
+                             "tu checkpoint_task_{N-1}.pt cung thu muc. Mac dinh TAT: hanh vi cu.")
 
     parser.add_argument("--use_fewshot", action="store_true",
                         help="Use the few-shot data split (centralized_data_fewshot) instead of the full centralized data")
@@ -373,6 +377,19 @@ def main():
         if 'exemplar_memory' in checkpoint:
             dm.exemplar_memory = checkpoint['exemplar_memory']
             print(f"[DataManager] Restored exemplar memory containing {len(dm.exemplar_memory.keys())} classes.")
+        elif "epoch" in os.path.basename(args.resume_path) and checkpoint.get('task_idx', 1) > 1:
+            _t = checkpoint['task_idx']
+            _base = os.path.dirname(os.path.abspath(args.resume_path))
+            if os.path.basename(_base) == "checkpoints":
+                _base = os.path.dirname(_base)
+            _prev = os.path.join(_base, f"checkpoint_task_{_t - 1}.pt")
+            if not os.path.isfile(_prev):
+                raise SystemExit(f"[Error] Checkpoint epoch cua task {_t} khong co exemplar_memory (che do "
+                                 f"--slim_epoch_ckpt) va khong thay {_prev}. Chay tiep se KHONG co replay "
+                                 f"-> ket qua sai. Dat checkpoint_task_{_t - 1}.pt vao thu muc chay roi resume lai.")
+            dm.exemplar_memory = torch.load(_prev, map_location="cpu", weights_only=False)['exemplar_memory']
+            print(f"[DataManager] Exemplar memory lay tu {os.path.basename(_prev)}: "
+                  f"{len(dm.exemplar_memory.keys())} classes.")
 
         filename = os.path.basename(args.resume_path)
         if "checkpoint_task" in filename:
@@ -503,7 +520,7 @@ def main():
                 'state_dict': model.state_dict(),
                 'checkpoint_init': model.checkpoint_init,
                 'seen_classes': seen_classes,
-                'exemplar_memory': dm.exemplar_memory,
+                **({} if args.slim_epoch_ckpt else {'exemplar_memory': dm.exemplar_memory}),
             }, epoch_checkpoint_path)
 
         dm.select_exemplars(train_x, train_y, classes, m_per_class=args.memory_per_class)
@@ -653,7 +670,7 @@ def main():
                     'state_dict': model.state_dict(),
                     'checkpoint_init': model.checkpoint_init,
                     'seen_classes': seen_classes,
-                    'exemplar_memory': dm.exemplar_memory,
+                    **({} if args.slim_epoch_ckpt else {'exemplar_memory': dm.exemplar_memory}),
                 }, epoch_checkpoint_path)
 
         # ---------------------------------------------------------------------
@@ -732,7 +749,7 @@ def main():
                     'state_dict': model.state_dict(),
                     'checkpoint_init': model.checkpoint_init,
                     'seen_classes': seen_classes,
-                    'exemplar_memory': dm.exemplar_memory,
+                    **({} if args.slim_epoch_ckpt else {'exemplar_memory': dm.exemplar_memory}),
                 }, epoch_checkpoint_path)
 
             for param in model.encoder.parameters():
