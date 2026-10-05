@@ -192,7 +192,7 @@ def load_checkpoint(model, checkpoint_path, device):
     fc_weight = state_dict['fc.weight']
     num_classes = fc_weight.shape[0]
 
-    model.fc = nn.Linear(model.encoder.out_dim, num_classes, bias=False)
+    model.fc = nn.Linear(model.encoder.out_dim, num_classes, bias=False).to(device)
     model.load_state_dict(state_dict)
 
     if 'checkpoint_init' in checkpoint:
@@ -375,7 +375,10 @@ def main():
             seen_classes = seen_classes[:num_classes]
 
         if 'exemplar_memory' in checkpoint:
-            dm.exemplar_memory = checkpoint['exemplar_memory']
+            # Dua exemplar ve CPU: checkpoint duoc nap voi map_location=device nen tensor nam tren GPU,
+            # con du lieu task hien tai nam tren CPU -> torch.cat o get_calibration_dataset se loi.
+            dm.exemplar_memory = {c: {'x': v['x'].cpu(), 'y': v['y'].cpu()}
+                                  for c, v in checkpoint['exemplar_memory'].items()}
             print(f"[DataManager] Restored exemplar memory containing {len(dm.exemplar_memory.keys())} classes.")
         elif "epoch" in os.path.basename(args.resume_path) and checkpoint.get('task_idx', 1) > 1:
             _t = checkpoint['task_idx']
