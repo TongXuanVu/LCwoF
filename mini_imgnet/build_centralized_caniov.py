@@ -105,6 +105,10 @@ def main():
     ap.add_argument("--out_root", required=True,
                      help="Thu muc dich de ghi du lieu da gop (vd /kaggle/working/centralized_caniov)")
     ap.add_argument("--dry-run", action="store_true", help="Chi bao cao, khong ghi file")
+    ap.add_argument("--skip_full", action="store_true",
+                    help="Bo qua kich ban FULL va symlink task 1: chi gop task 2..5 cua fewshot/10shot. "
+                         "Dung khi RESUME tu checkpoint_task_1.pt (khong bao gio doc centralized_task_1.pt) "
+                         "-> tranh gop ~18GB du lieu full tren /kaggle/working (quota 20GB).")
     args = ap.parse_args()
 
     fed_root = args.fed_root
@@ -122,16 +126,20 @@ def main():
     all_tasks = list(range(1, NUM_TASKS + 1))
     fs_tasks = [t for t in all_tasks if t != TASK_BASE]
 
-    print("\n=== Kich ban FULL (task 1..5) ===")
-    xu_ly_kich_ban(os.path.join(fed_root, "federated_data"),
-                    os.path.join(out_root, "centralized_data"),
-                    all_tasks, args.dry_run)
+    if args.skip_full:
+        print("\n=== Bo qua kich ban FULL (--skip_full) ===")
+    else:
+        print("\n=== Kich ban FULL (task 1..5) ===")
+        xu_ly_kich_ban(os.path.join(fed_root, "federated_data"),
+                        os.path.join(out_root, "centralized_data"),
+                        all_tasks, args.dry_run)
 
     print("\n=== Kich ban FEWSHOT 1% (task 2..5; task 1 dung chung ban full) ===")
     dst_fewshot = os.path.join(out_root, "fewshot", "centralized_data_fewshot")
     if not args.dry_run:
         os.makedirs(dst_fewshot, exist_ok=True)
-        lien_ket_task_base(out_root, dst_fewshot)
+        if not args.skip_full:
+            lien_ket_task_base(out_root, dst_fewshot)
     xu_ly_kich_ban(os.path.join(fed_root, "federated_data_fewshot"),
                     dst_fewshot, fs_tasks, args.dry_run)
 
@@ -139,7 +147,8 @@ def main():
     dst_10shot = os.path.join(out_root, "10shot", "centralized_data_10shot")
     if not args.dry_run:
         os.makedirs(dst_10shot, exist_ok=True)
-        lien_ket_task_base(out_root, dst_10shot)
+        if not args.skip_full:
+            lien_ket_task_base(out_root, dst_10shot)
     xu_ly_kich_ban(os.path.join(fed_root, "federated_data_10shot"),
                     dst_10shot, fs_tasks, args.dry_run)
 
